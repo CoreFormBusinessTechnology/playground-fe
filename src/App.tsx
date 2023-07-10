@@ -1,24 +1,20 @@
 import React from 'react';
-import logo from './logo.svg';
+import axios from 'axios';
 import './App.css';
 
 function App() {
+  const makeRequests = () => {
+    for (let index = 0; index < 10; index++) {
+      axios.post(`https://dh7aht0kba.execute-api.ap-southeast-2.amazonaws.com/dev?param1=${index}`, {}, {
+        headers: {
+          Accept: '*/*',
+        }
+      });
+    }
+  }
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <button onClick={makeRequests}>makeRequests</button>
     </div>
   );
 }
