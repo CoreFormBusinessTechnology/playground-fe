@@ -5,7 +5,7 @@ import './App.css';
 function App() {
   const makeRequests = () => {
     for (let index = 0; index < 10; index++) {
-      axios.post(`/api?count=${index}`, {}, {
+      axios.get(`/api?count=${index}`, {
         headers: {
           Accept: '*/*',
         }
