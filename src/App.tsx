@@ -6,6 +6,7 @@ function App() {
   const makeRequests = () => {
     for (let index = 0; index < 10; index++) {
       axios.get(`/api?count=${index}`, {
+        timeout: 500,
         headers: {
           Accept: '*/*',
         }
