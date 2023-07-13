@@ -1,22 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
 function App() {
-  const makeRequests = () => {
-    for (let index = 0; index < 10; index++) {
-      axios.get(`/api?count=${index}`, {
-        timeout: 500,
-        headers: {
-          Accept: '*/*',
-        }
-      });
-    }
+  const [count, setCount] = useState<number>(50000000);
+  const makeRequest = () => {
+    axios.get(`/api?count=${count}`, {
+      timeout: 500,
+      headers: {
+        Accept: '*/*',
+      }
+    });
   }
   return (
     <div className="App">
-      <button onClick={makeRequests}>makeRequests</button>
-      <p>v0.0.1</p>
+      <div>
+        <input type="number" onChange={() => setCount} value={count} />
+      </div>
+      <button onClick={makeRequest}>makeRequests</button>
+      <p>v0.0.2</p>
     </div>
   );
 }
