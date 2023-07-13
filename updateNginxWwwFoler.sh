@@ -1,0 +1,1 @@
+sudo cp -R build/* /var/www/playground.coreform.co/html/
