@@ -80,7 +80,7 @@ self.addEventListener('message', (event) => {
 
 // Any other custom service worker logic can go here.
 // BACKGTOUND SYNC - START
-const bgSyncPlugin = new BackgroundSyncPlugin('my-queue');
+const bgSyncPlugin = new BackgroundSyncPlugin('my-queue', {onSync: (p) => alert('bla')});
 
 registerRoute(/.*\/api.*/, new NetworkOnly({ plugins: [bgSyncPlugin] }), 'GET');
 // BACKGTOUND SYNC - END
