@@ -15,6 +15,7 @@ function App() {
   return (
     <div className="App">
       <button onClick={makeRequests}>makeRequests</button>
+      <p>v0.0.1</p>
     </div>
   );
 }
