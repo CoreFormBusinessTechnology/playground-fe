@@ -94,7 +94,7 @@ self.addEventListener('sync', function(event) {
   if (event.tag === 'not-synced-order-tag') {
     console.log('[SW] Syncing new orders');
     //@ts-ignore
-    event.waituntil(
+    event.waitUntil(
       db.orders
       .where('status')
       .equals('not_synced')
