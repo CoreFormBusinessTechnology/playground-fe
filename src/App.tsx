@@ -39,6 +39,15 @@ function App() {
   const [status, setStatus] = useState('pending');
   const [message, setMessage] = useState('');
 
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then(function (sw) {
+      const tags = sw.sync.getTags();
+      tags.then(function (v) {
+        console.table(v);
+      })
+    });
+  }
+
   const deliverOrder = async () => {
     try {
 
@@ -51,6 +60,18 @@ function App() {
 
       setMessage(`Order for ${orderNumber} successfully added. Got id: ${id}`);
       setOrderNumber(Math.random().toString().split('.')[1]);
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        navigator.serviceWorker.ready
+          .then(function (sw) {
+            return sw.sync.register(`tag${orderNumber}`);
+          })
+          .then(function() {
+            console.log(`tag${orderNumber} has been registered`);
+          })
+          .catch(function(e) {
+            console.error(e);
+          })
+      }
     } catch (error) {
       setMessage(`Failed to add order for ${orderNumber}: ${error}`);
     }
