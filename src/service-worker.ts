@@ -12,8 +12,9 @@ import { clientsClaim } from 'workbox-core';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { StaleWhileRevalidate, NetworkOnly } from 'workbox-strategies';
-import { BackgroundSyncPlugin } from 'workbox-background-sync';
+import { StaleWhileRevalidate } from 'workbox-strategies';
+import { db } from './db';
+import { makeRequest } from './api';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -79,9 +80,32 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
-// BACKGTOUND SYNC - START
+// BACKGTOUND SYNC - START v1
 // const bgSyncPlugin = new BackgroundSyncPlugin('my-queue', {onSync: (p) => alert('bla')});
 
 // registerRoute(/.*\/api.*/, new NetworkOnly({ plugins: [bgSyncPlugin] }), 'GET');
-// BACKGTOUND SYNC - END
+// BACKGTOUND SYNC - END v1
+
+// BACKGTOUND SYNC - START v2
+self.addEventListener('sync', function(event) {
+  console.log('[SW] Background syncing', event);
+
+  //@ts-ignore
+  if (event.tag === 'not-synced-order-tag') {
+    console.log('[SW] Syncing new orders');
+    //@ts-ignore
+    event.waituntil(
+      db.orders
+      .where('status')
+      .equals('not_synced')
+      .toArray().then(function (orders) {
+        orders.map(order => {
+          makeRequest(order);
+        })
+      })
+    );
+
+  }
+})
+// BACKGTOUND SYNC - END v2
 

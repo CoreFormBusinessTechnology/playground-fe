@@ -36,13 +36,14 @@ export function OrderList({status}: OrderListProp) {
 function App() {
   const [count, setCount] = useState<number>(50000000);
   const [orderNumber, setOrderNumber] = useState(Math.random().toString().split('.')[1]);
-  const [status, setStatus] = useState('pending');
+  const [status, setStatus] = useState('not_synced');
   const [message, setMessage] = useState('');
 
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.ready.then(function (sw) {
+      //@ts-ignore
       const tags = sw.sync.getTags();
-      tags.then(function (v) {
+      tags.then(function (v: any) {
         console.table(v);
       })
     });
@@ -60,10 +61,12 @@ function App() {
 
       setMessage(`Order for ${orderNumber} successfully added. Got id: ${id}`);
       setOrderNumber(Math.random().toString().split('.')[1]);
+      alert("Order saved successfully to local DB!");
       if ('serviceWorker' in navigator && 'SyncManager' in window) {
         navigator.serviceWorker.ready
           .then(function (sw) {
-            return sw.sync.register(`tag${orderNumber}`);
+            //@ts-ignore
+            return sw.sync.register(`not-synced-order-tag`);
           })
           .then(function() {
             console.log(`tag${orderNumber} has been registered`);
@@ -115,7 +118,7 @@ function App() {
           Save
         </button>
       </div>
-      <OrderList status={'pending'} />
+      <OrderList status={'not_synced'} />
     </div>
   );
 }
