@@ -101,6 +101,7 @@ self.addEventListener('sync', function(event) {
       .toArray().then(function (orders) {
         orders.map(order => {
           makeRequest(order);
+          db.orders.update(order, {status: 'synced'})
         })
       })
     );
