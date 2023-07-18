@@ -104,6 +104,9 @@ self.addEventListener('sync', function(event) {
           db.orders.update(order, {status: 'synced'})
         })
       })
+      .then(function () {
+        self.registration.showNotification('Orders synced with server');
+      })
     );
 
   }

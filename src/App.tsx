@@ -46,6 +46,17 @@ function App() {
       tags.then(function (v: any) {
         console.table(v);
       })
+
+      // push notification
+      Notification.requestPermission()
+        .then(function (result) {
+          if (result === 'denied') {
+            console.log('The user explicitly denied the permission request.');
+          }
+          if (result === 'granted') {
+            console.info('The user accepted the permission request.');
+          }
+      })
     });
   }
 
