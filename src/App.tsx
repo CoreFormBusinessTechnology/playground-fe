@@ -39,26 +39,26 @@ function App() {
   const [status, setStatus] = useState('not_synced');
   const [message, setMessage] = useState('');
 
-  // if ('serviceWorker' in navigator && 'SyncManager' in window) {
-  //   navigator.serviceWorker.ready.then(function (sw) {
-  //     //@ts-ignore
-  //     const tags = sw.sync.getTags();
-  //     tags.then(function (v: any) {
-  //       console.table(v);
-  //     })
+  if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then(function (sw) {
+      // //@ts-ignore
+      // const tags = sw.sync.getTags();
+      // tags.then(function (v: any) {
+      //   console.table(v);
+      // })
 
-  //     // push notification
-  //     Notification.requestPermission()
-  //       .then(function (result) {
-  //         if (result === 'denied') {
-  //           console.log('The user explicitly denied the permission request.');
-  //         }
-  //         if (result === 'granted') {
-  //           console.info('The user accepted the permission request.');
-  //         }
-  //     })
-  //   });
-  // }
+      // push notification
+      Notification.requestPermission()
+        .then(function (result) {
+          if (result === 'denied') {
+            console.log('The user explicitly denied the permission request.');
+          }
+          if (result === 'granted') {
+            console.info('The user accepted the permission request.');
+          }
+      })
+    });
+  }
 
   // const deliverOrderWithoutWorkBox = async () => {
   //   try {
