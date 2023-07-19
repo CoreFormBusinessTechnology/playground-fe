@@ -121,7 +121,7 @@ function App() {
         />
       </div>
       <button onClick={() => makeGetRequest(count)}>Deliver</button>
-      <p>v0.0.5</p>
+      <p>v0.0.6</p>
 
       <div>
         <p>What order was delivered?</p>
