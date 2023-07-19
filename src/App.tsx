@@ -114,7 +114,7 @@ function App() {
         />
       </div>
       <button onClick={makeRequest}>Deliver</button>
-      <p>v0.0.2</p>
+      <p>v0.0.5</p>
 
       <div>
         <p>What order was delivered?</p>
