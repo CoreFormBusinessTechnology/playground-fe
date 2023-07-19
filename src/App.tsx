@@ -103,7 +103,15 @@ function App() {
 
       setMessage(`Order for ${orderNumber} successfully added. Got id: ${id}`);
       setOrderNumber(Math.random().toString().split('.')[1]);
-      makePostRequest(await db.orders.get(id));
+      try {
+        const orderSaved = await db.orders.get(id);
+        await makePostRequest(orderSaved);
+        if (orderSaved) {
+          db.orders.update(orderSaved, {status: 'synced'});
+        }
+      } catch (error) {
+        
+      }
       
     } catch (error) {
       setMessage(`Failed to add order for ${orderNumber}: ${error}`);
