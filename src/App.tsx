@@ -9,7 +9,7 @@ type OrderListProp = {
 }
 
 export function OrderList({status}: OrderListProp) {
-  const friends = useLiveQuery(
+  const ordersLiveQuery = useLiveQuery(
     async () => {
       //
       // Query Dexie's API
@@ -27,7 +27,7 @@ export function OrderList({status}: OrderListProp) {
   );
 
   return <ul>
-    {friends?.map(order => <li key={order.id}>
+    {ordersLiveQuery?.map(order => <li key={order.id}>
       {order.orderNumber}, {order.status}
     </li>)}
   </ul>;
@@ -129,7 +129,14 @@ function App() {
           Save
         </button>
       </div>
-      <OrderList status={'not_synced'} />
+      <div>
+        <h4>Not synced Orders</h4>
+        <OrderList status={'not_synced'} />
+      </div>
+      <div>
+        <h4>Synced Orders</h4>
+        <OrderList status={'synced'} />
+      </div>
     </div>
   );
 }
