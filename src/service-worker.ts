@@ -90,7 +90,9 @@ const backgroundSyncCallbackFn = (bgSyncParam: any) => {
     .toArray().then(function (orders) {
       orders.map(order => {
         makePostRequest(order).then(function (r) {
-          db.orders.update(order, {status: 'synced'})
+          if (r?.ok) {
+            db.orders.update(order, {status: 'synced'});
+          }
         });
         return order;
       })

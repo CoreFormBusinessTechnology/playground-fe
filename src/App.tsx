@@ -105,8 +105,8 @@ function App() {
       setOrderNumber(Math.random().toString().split('.')[1]);
       try {
         const orderSaved = await db.orders.get(id);
-        await makePostRequest(orderSaved);
-        if (orderSaved) {
+        const response = await makePostRequest(orderSaved);
+        if (orderSaved && response?.ok) {
           db.orders.update(orderSaved, {status: 'synced'});
         }
       } catch (error) {
