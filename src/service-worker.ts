@@ -87,7 +87,7 @@ self.addEventListener('message', (event) => {
 // BACKGTOUND SYNC - END v1
 
 // BACKGTOUND SYNC - START v2
-self.addEventListener('fetch', function(event) {
+self.addEventListener('sync', function(event) {
   console.log('[SW] Background syncing', event);
 
   //@ts-ignore
