@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import axios from 'axios';
 import { db } from './db';
 import './App.css';
+import { makeGetRequest, makePostRequest } from './api';
 
 type OrderListProp = {
   status: string;
@@ -60,7 +60,38 @@ function App() {
     });
   }
 
-  const deliverOrder = async () => {
+  // const deliverOrderWithoutWorkBox = async () => {
+  //   try {
+
+  //     // Add the new friend!
+  //     const id = await db.orders.add({
+  //       orderNumber,
+  //       status,
+  //       message
+  //     });
+
+  //     setMessage(`Order for ${orderNumber} successfully added. Got id: ${id}`);
+  //     setOrderNumber(Math.random().toString().split('.')[1]);
+  //     alert("Order saved successfully to local DB!");
+  //     if ('serviceWorker' in navigator && 'SyncManager' in window) {
+  //       navigator.serviceWorker.ready
+  //         .then(function (sw) {
+  //           //@ts-ignore
+  //           return sw.sync.register(`not-synced-order-tag`);
+  //         })
+  //         .then(function() {
+  //           console.log(`tag${orderNumber} has been registered`);
+  //         })
+  //         .catch(function(e) {
+  //           console.error(e);
+  //         })
+  //     }
+  //   } catch (error) {
+  //     setMessage(`Failed to add order for ${orderNumber}: ${error}`);
+  //   }
+  // }
+
+  const deliverOrderWithWorkBox = async () => {
     try {
 
       // Add the new friend!
@@ -72,38 +103,14 @@ function App() {
 
       setMessage(`Order for ${orderNumber} successfully added. Got id: ${id}`);
       setOrderNumber(Math.random().toString().split('.')[1]);
-      alert("Order saved successfully to local DB!");
-      if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        navigator.serviceWorker.ready
-          .then(function (sw) {
-            //@ts-ignore
-            return sw.sync.register(`not-synced-order-tag`);
-          })
-          .then(function() {
-            console.log(`tag${orderNumber} has been registered`);
-          })
-          .catch(function(e) {
-            console.error(e);
-          })
-      }
+      makePostRequest(await db.orders.get(id));
+      
     } catch (error) {
       setMessage(`Failed to add order for ${orderNumber}: ${error}`);
+      alert("Order saved successfully to local DB!");
     }
   }
 
-  const makeRequest = async () => {
-    try {
-      await axios.get(`/api?count=${count}`, {
-        timeout: 500,
-        headers: {
-          Accept: '*/*',
-        },
-      });
-    } catch (error) {
-      console.log(error);
-      alert("Orders will be synced in the background!");
-    }
-  };
   return (
     <div className='App'>
       <div>
@@ -113,7 +120,7 @@ function App() {
           value={count}
         />
       </div>
-      <button onClick={makeRequest}>Deliver</button>
+      <button onClick={() => makeGetRequest(count)}>Deliver</button>
       <p>v0.0.5</p>
 
       <div>
@@ -125,7 +132,7 @@ function App() {
           onChange={ev => setOrderNumber(ev.target.value)}
         />
         
-        <button onClick={deliverOrder}>
+        <button onClick={deliverOrderWithWorkBox}>
           Save
         </button>
       </div>

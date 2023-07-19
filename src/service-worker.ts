@@ -14,7 +14,7 @@ import { precacheAndRoute, createHandlerBoundToURL } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { db } from './db';
-import { makeRequest } from './api';
+import { makePostRequest } from './api';
 import { BackgroundSyncPlugin } from 'workbox-background-sync';
 
 declare const self: ServiceWorkerGlobalScope;
@@ -89,7 +89,7 @@ const backgroundSyncCallbackFn = (bgSyncParam: any) => {
     .equals('not_synced')
     .toArray().then(function (orders) {
       orders.map(order => {
-        makeRequest(order);
+        makePostRequest(order);
         db.orders.update(order, {status: 'synced'})
         return order;
       })
