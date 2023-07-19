@@ -15,7 +15,7 @@ import { registerRoute } from 'workbox-routing';
 import { NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { db } from './db';
 import { makePostRequest } from './api';
-import { BackgroundSyncPlugin } from 'workbox-background-sync';
+import { Queue } from 'workbox-background-sync';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -82,6 +82,31 @@ self.addEventListener('message', (event) => {
 
 // Any other custom service worker logic can go here.
 // BACKGTOUND SYNC - START v1
+// const backgroundSyncCallbackFn = (bgSyncParam: any) => {
+//   console.log('[SW] Background syncing', bgSyncParam.queue.name);
+//   db.orders
+//     .where('status')
+//     .equals('not_synced')
+//     .toArray().then(function (orders) {
+//       orders.map(order => {
+//         makePostRequest(order).then(function (r) {
+//           if (r?.ok) {
+//             db.orders.update(order, {status: 'synced'});
+//           }
+//         });
+//         return order;
+//       })
+//     })
+// }
+
+// const bgSyncPlugin = new BackgroundSyncPlugin('not-synced-orders', {
+//   maxRetentionTime: 24 * 60,
+//   onSync: backgroundSyncCallbackFn
+// });
+
+// registerRoute(/.*\/api.*/, new NetworkOnly({ plugins: [bgSyncPlugin] }), 'POST');
+// BACKGTOUND SYNC - END v1
+// BACKGTOUND SYNC - START v1.2
 const backgroundSyncCallbackFn = (bgSyncParam: any) => {
   console.log('[SW] Background syncing', bgSyncParam.queue.name);
   db.orders
@@ -99,13 +124,29 @@ const backgroundSyncCallbackFn = (bgSyncParam: any) => {
     })
 }
 
-const bgSyncPlugin = new BackgroundSyncPlugin('not-synced-orders', {
+const bgSyncQueue = new Queue('not-synced-orders', {
   maxRetentionTime: 24 * 60,
   onSync: backgroundSyncCallbackFn
 });
 
-registerRoute(/.*\/api.*/, new NetworkOnly({ plugins: [bgSyncPlugin] }), 'POST');
-// BACKGTOUND SYNC - END v1
+self.onfetch = (event) => {
+  let requestClone = event.request.clone();
+  if (requestClone.method === 'POST' && requestClone.url.includes('/api')) {
+    event.respondWith(
+        //@ts-ignore
+          (() => {
+              const promiseChain = fetch(requestClone).catch(() => {
+                  return bgSyncQueue.pushRequest(event);
+              });
+              event.waitUntil(promiseChain);
+              return promiseChain;
+          })()
+      );
+  } else {
+      event.respondWith(fetch(event.request));
+  }
+};
+// BACKGTOUND SYNC - END v1.2
 
 // BACKGTOUND SYNC - START v2
 // self.addEventListener('sync', function(event) {
