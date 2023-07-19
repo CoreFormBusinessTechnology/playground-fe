@@ -107,27 +107,47 @@ self.addEventListener('message', (event) => {
 // registerRoute(/.*\/api.*/, new NetworkOnly({ plugins: [bgSyncPlugin] }), 'POST');
 // BACKGTOUND SYNC - END v1
 // BACKGTOUND SYNC - START v1.2
-const backgroundSyncCallbackFn = (bgSyncParam: any) => {
-  console.log('[SW] Background syncing', bgSyncParam.queue.name);
-  db.orders
-    .where('status')
-    .equals('not_synced')
-    .toArray().then(function (orders) {
-      orders.map(order => {
-        makePostRequest(order).then(function (r) {
-          if (r?.ok) {
-            db.orders.update(order, {status: 'synced'});
-          }
-        });
-        return order;
-      })
-    })
-}
-
 const bgSyncQueue = new Queue('not-synced-orders', {
   maxRetentionTime: 24 * 60,
-  onSync: backgroundSyncCallbackFn
+  //@ts-ignore
+  onSync: () => backgroundSyncCallbackFn()
 });
+
+
+async function backgroundSyncCallbackFn() {
+  console.log('[SW] Background syncing | backgroundSyncCallbackFn');
+  if (bgSyncQueue) {
+    replayQueue(bgSyncQueue);
+    return;
+  }
+  return Promise.resolve('empty');
+}
+
+const replayQueue = async (queue: Queue) => {
+  let entry;
+  while ((entry = await queue.shiftRequest())) {
+    //while we have requests to replay
+    await entry.request.clone().json();
+    try {
+      await db.orders
+      .where('status')
+      .equals('not_synced')
+      .toArray().then(function (orders) {
+        orders.map(order => {
+          makePostRequest(order).then(function (r) {
+            if (r?.ok) {
+              db.orders.update(order, {status: 'synced'});
+            }
+          });
+          return order;
+        })
+      })
+    } catch (error) {
+      await queue.unshiftRequest(entry); //put failed request back into queue, and try again later
+    }
+  }
+  return Promise.resolve();
+};
 
 self.onfetch = (event) => {
   let requestClone = event.request.clone();
@@ -144,6 +164,58 @@ self.onfetch = (event) => {
       );
   } else {
       event.respondWith(fetch(event.request));
+  }
+};
+
+function isIosDevice() {
+  return !!navigator.platform && /iPad|iPhone|MacIntel|iPod/.test(navigator.platform) && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
+if (navigator.onLine && isIosDevice()) {
+  if (window.MessageChannel) {
+      var messageChannel = new MessageChannel();
+      messageChannel.port1.onmessage = (event) => {
+          // this.onMessageSuccess(event);
+      };
+  } else {
+      navigator.serviceWorker.onmessage = (event) => {
+          // this.onMessageSuccess(event);
+      };
+  }
+  navigator.serviceWorker.ready.then((reg) => {
+      try {
+        //@ts-ignore
+          reg.active.postMessage(
+              {
+                  text: 'sync',
+                  port: messageChannel && messageChannel.port2,
+              },
+              [messageChannel && messageChannel.port2]
+          );
+      } catch (e) {
+          //firefox support
+          //@ts-ignore
+          reg.active.postMessage({
+              text: 'sync',
+          });
+      }
+  });
+}
+
+self.onmessage = (event) => {
+  if (event.data.text === 'sync') {
+      event.waitUntil(
+        backgroundSyncCallbackFn().then((res) => {
+              if (res !== 'empty') {
+                  if (event.source) {
+                      event.source.postMessage('doNotification');//this is telling the client code to show a notification (i have a built in notification system into the app, that does not use push notification, just shows a little pill on the bottom of the app with the message)
+                  } else if (event.data.port) {
+                      event.data.port.postMessage('doNotification'); //same thing
+                  }
+                  return res;
+              }
+          })
+      );
   }
 };
 // BACKGTOUND SYNC - END v1.2
